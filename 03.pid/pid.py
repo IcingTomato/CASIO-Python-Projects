@@ -1,4 +1,5 @@
 # PID Controller Implementation - MicroPython Version
+# Need to press "AC" to abort the infinite loop in the terminal
 import random
 
 # Try to import hardware module for alternative random source
