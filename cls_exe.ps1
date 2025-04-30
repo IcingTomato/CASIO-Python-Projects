@@ -30,27 +30,37 @@ if ($ExeFiles.Count -eq 0) {
     Write-Host "Cleanup completed!"
 }
 
-# Get git status
-$gitStatus = git status --porcelain
+# Get modified files using git diff instead of git status
+$modifiedFiles = git diff --name-only --cached
+$modifiedFiles += git diff --name-only
+$modifiedFiles += git ls-files --others --exclude-standard
 
-if (-not $gitStatus) {
+# Remove duplicates
+$modifiedFiles = $modifiedFiles | Select-Object -Unique
+
+if (-not $modifiedFiles) {
     Write-Host " "
     Write-Host "No uncommitted changes."
     Write-Host " "
     $filesOutput = ""
 } else {
-    # Parsing filenames and removing status flags
-    $FileNames = @()
-    $gitStatus | ForEach-Object {
-        $line = $_ -replace '^\s*[A-Z?]+\s+', '' # Remove preceding status flags and spaces
-        $FileNames += $line
-    }
-
+    # 转换为数组以确保正确处理单个文件的情况
+    $FileNames = @($modifiedFiles)
+    
+    # 确保所有元素都被当作数组处理
+    Write-Host "Debug - Number of changed files:" $FileNames.Count
+    $FileNames | ForEach-Object { Write-Host "File: $_" }
+    
     # If there are more than two files, show only the first two and add "etc."
     if ($FileNames.Count -gt 2) {
-        $filesOutput = ($FileNames[0..1] -join ", ") + ", etc."
+        $filesOutput = "$($FileNames[0]), $($FileNames[1]), etc."
     } else {
-        $filesOutput = ($FileNames -join ", ")
+        # 使用字符串拼接方式构建输出，确保正确应用分隔符
+        if ($FileNames.Count -eq 1) {
+            $filesOutput = $FileNames[0]
+        } else {
+            $filesOutput = "$($FileNames[0]), $($FileNames[1])"
+        }
     }
     Write-Host "Changed files: $filesOutput"
 }
