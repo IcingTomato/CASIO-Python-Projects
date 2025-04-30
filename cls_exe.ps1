@@ -53,13 +53,15 @@ if (-not $modifiedFiles) {
     
     # If there are more than two files, show only the first two and add "etc."
     if ($FileNames.Count -gt 2) {
-        $filesOutput = "$($FileNames[0]), $($FileNames[1]), etc."
+        # 确保文件名之间有正确的分隔符
+        $filesOutput = "$($FileNames[0] -replace ',', ''), $($FileNames[1] -replace ',', ''), etc."
     } else {
         # 使用字符串拼接方式构建输出，确保正确应用分隔符
         if ($FileNames.Count -eq 1) {
-            $filesOutput = $FileNames[0]
+            $filesOutput = $FileNames[0] -replace ',', ''
         } else {
-            $filesOutput = "$($FileNames[0]), $($FileNames[1])"
+            # 确保两个文件名之间有逗号和空格
+            $filesOutput = "$($FileNames[0] -replace ',', ''), $($FileNames[1] -replace ',', '')"
         }
     }
     Write-Host "Changed files: $filesOutput"
@@ -71,7 +73,7 @@ if (-not $gitcommit) {
 }
 
 # 确保 commit 消息正确加引号
-$gitcommitQuoted = "`"$gitcommit`""
+$gitcommitQuoted = "'$gitcommit'"  # 使用单引号可能更安全
 
 # Stage all changes, commit, and push to Git
 Write-Host " "
